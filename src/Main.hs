@@ -292,9 +292,9 @@ toBuildMaps makefile = BuildMaps buildMap childrenMap
       | (outputPath, target) <- outputs ]
 
 withBuildsome ::
-  Sophia.Db -> Int -> Makefile -> DeleteUnspecifiedOutputs ->
+  Sophia.Db -> Makefile -> Opt ->
   FilePath -> (Buildsome -> IO a) -> IO a
-withBuildsome db parallelism makefile deleteUnspecifiedOutput ldPreloadPath body = do
+withBuildsome db makefile opt ldPreloadPath body = do
   runningCmds <- newIORef M.empty
   slaveMapByRepPath <- newIORef M.empty
   bsPid <- getProcessID
@@ -315,12 +315,18 @@ withBuildsome db parallelism makefile deleteUnspecifiedOutput ldPreloadPath body
         , bsMakefile = makefile
         }
 
-  withUnixSeqPacketListener serverFilename $ \listener ->
+  flip E.finally (updateGitIgnore buildsome) $
+    withUnixSeqPacketListener serverFilename $ \listener ->
     AsyncContext.new $ \ctx -> do
       _ <- AsyncContext.spawn ctx $ forever $ do
         (conn, _srcAddr) <- Sock.accept listener
         AsyncContext.spawn ctx $ serve buildsome conn
       body buildsome
+  where
+    updateGitIgnore = do
+      getRegisteredOutputs buildsome
+    parallelism = fromMaybe 1 mParallelism
+    Opt _ mParallelism mGitIgnore deleteUnspecifiedOutput = opt
 
 getLdPreloadPath :: IO FilePath
 getLdPreloadPath = do
@@ -673,13 +679,12 @@ withDb dbFileName body = do
 
 main :: IO ()
 main = do
-  Opt makefileName mparallelism deleteUnspecifiedOutput <- getOpt
-  let buildDbFilename = makefileName <.> "db"
-      parallelism = fromMaybe 1 mparallelism
-  makefile <- Makefile.parse makefileName
+  opt <- getOpt
+  let buildDbFilename = optMakefilePath opt <.> "db"
+  makefile <- Makefile.parse (optMakefilePath opt)
   withDb buildDbFilename $ \db -> do
     ldPreloadPath <- getLdPreloadPath
-    withBuildsome db parallelism makefile deleteUnspecifiedOutput ldPreloadPath $
+    withBuildsome db makefile opt ldPreloadPath $
       \buildsome -> do
       deleteRemovedOutputs buildsome
       case makefileTargets makefile of
