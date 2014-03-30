@@ -92,6 +92,7 @@ maxMsgSize = 8192
 with :: (FSHook -> IO a) -> IO a
 with body = do
   ldPreloadPath <- getLdPreloadPath
+  putStrLn $ "Using fs_override.so from " ++ show ldPreloadPath
   pid <- Posix.getProcessID
   freshJobIds <- Fresh.new 0
   let serverFilename = "/tmp/fshook-" <> BS8.pack (show pid)
