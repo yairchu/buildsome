@@ -4,14 +4,19 @@ module Lib.ByteString
   , unprefixed, unsuffixed
   , strictify, lazify
   , chopTrailingNewline, guaranteeTrailingNewline
+  , fromBytestring8
   ) where
 
 import Data.ByteString (ByteString)
 import Data.Monoid
+import Data.String (IsString(..))
 import Data.Word
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BS8
 import qualified Data.ByteString.Lazy as BSL
+
+fromBytestring8 :: IsString str => ByteString -> str
+fromBytestring8 = fromString . BS8.unpack
 
 chopTrailingNewline :: ByteString -> ByteString
 chopTrailingNewline bs

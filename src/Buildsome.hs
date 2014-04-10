@@ -27,6 +27,7 @@ import Data.Typeable (Typeable)
 import Lib.AnnotatedException (annotateException)
 import Lib.BuildId (BuildId)
 import Lib.BuildMaps (BuildMaps(..), DirectoryBuildMap(..), TargetRep)
+import Lib.ByteString (fromBytestring8)
 import Lib.ColorText (ColorText, renderStr)
 import Lib.Directory (getMFileStatus, removeFileOrDirectory, removeFileOrDirectoryOrNothing, exists)
 import Lib.Exception (finally)
@@ -158,9 +159,6 @@ assertExists :: E.Exception e => FilePath -> e -> IO ()
 assertExists path err = do
   doesExist <- exists path
   unless doesExist $ E.throwIO err
-
-fromBytestring8 :: IsString str => ByteString -> str
-fromBytestring8 = fromString . BS8.unpack
 
 data MissingRule = MissingRule FilePath Reason deriving (Typeable)
 instance E.Exception MissingRule

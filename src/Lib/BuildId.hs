@@ -5,15 +5,15 @@ module Lib.BuildId
 
 import Control.Applicative ((<$>))
 import Data.Binary (Binary)
+import Data.ByteString (ByteString)
 import Data.Time.Clock (getCurrentTime)
-import Data.Time.Format (formatTime)
 import GHC.Generics (Generic)
-import System.Locale (defaultTimeLocale)
+import qualified Lib.FormatTime as FormatTime
 
-newtype BuildId = BuildId String
+newtype BuildId = BuildId ByteString
   deriving (Show, Generic)
 
 instance Binary BuildId
 
 new :: IO BuildId
-new = BuildId . formatTime defaultTimeLocale "%y%m%d-%H%M%S%Q" <$> getCurrentTime
+new = BuildId . FormatTime.full <$> getCurrentTime

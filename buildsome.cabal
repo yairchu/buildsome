@@ -52,6 +52,7 @@ executable buildsome
                ,     Lib.Fifo
                ,     Lib.FileDesc
                ,     Lib.FilePath
+               ,     Lib.FormatTime
                ,     Lib.Fresh
                ,     Lib.IORef
                ,     Lib.List

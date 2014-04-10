@@ -12,6 +12,8 @@ import Data.ByteString (ByteString)
 import Data.IORef
 import Data.Monoid
 import Data.String (IsString(..))
+import Data.Time (getCurrentTime)
+import Lib.ByteString (fromBytestring8)
 import Lib.ColorText (ColorText)
 import Prelude hiding (putStrLn, lines)
 import Text.Printf (printf)
@@ -19,6 +21,7 @@ import qualified Control.Exception as E
 import qualified Data.ByteString.Char8 as BS8
 import qualified Data.List as List
 import qualified Lib.ColorText as ColorText
+import qualified Lib.FormatTime as FormatTime
 import qualified Prelude
 import qualified System.Console.ANSI as Console
 
@@ -66,7 +69,8 @@ idStr = fromString . printf "T%03d"
 printStrLn :: Printable str => Printer -> str -> IO ()
 printStrLn (Printer pid indentRef) str = do
   indentLevel <- readIORef indentRef
-  let prefix = idStr pid <> " " <> mconcat (replicate indentLevel "  ")
+  shortTimeStr <- fromBytestring8 . FormatTime.short <$> getCurrentTime
+  let prefix = idStr pid <> " " <> shortTimeStr <> ":" <> mconcat (replicate indentLevel "  ")
   putStrLn . intercalate "\n" . map (prefix <>) . lines $ str
 
 {-# INLINE onException #-}
