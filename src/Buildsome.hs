@@ -275,14 +275,13 @@ verifyTargetOutputs buildsome outputs target = do
 
   -- Illegal unspecified that do exist are a problem:
   existingIllegalOutputs <- filterM Dir.exists illegalOutputs
+
   unless (null existingIllegalOutputs) $ do
     Print.posMessage (targetPos target) $ Color.error $
       "Illegal output files created: " <> show existingIllegalOutputs
-
-    Print.warn (targetPos target) $ "leaving leaked unspecified output effects" -- Need to make sure we only record actual outputs, and not *attempted* outputs before we delete this
-    -- mapM_ removeFileOrDirectory existingIllegalOutputs
-
+    mapM_ removeFileOrDirectory existingIllegalOutputs
     E.throwIO $ IllegalUnspecifiedOutputs target existingIllegalOutputs
+
   warnOverSpecified "outputs" specified (outputs `S.union` phoniesSet buildsome) (targetPos target)
   where
     (unspecifiedOutputs, illegalOutputs) =
